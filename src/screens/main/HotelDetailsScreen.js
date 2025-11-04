@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import CustomButton from '../../components/CustomButton';
-import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
+import { COLORS, SIZES } from '../../constants/theme';
 import { useAuth } from '../../context/AuthContext';
 import { fetchWeatherByCoords } from '../../services/apiService';
 import { getHotelReviews } from '../../services/firestoreService';
@@ -41,7 +41,7 @@ const HotelDetailsScreen = ({ route, navigation }) => {
   const loadReviews = async () => {
     const result = await getHotelReviews(hotel.id);
     if (result.success) {
-      setReviews(result.reviews.slice(0, 3)); // Show only 3 recent reviews
+      setReviews(result.reviews.slice(0, 3));
     }
   };
 
@@ -53,17 +53,24 @@ const HotelDetailsScreen = ({ route, navigation }) => {
     navigation.navigate('Booking', { hotel });
   };
 
+  const handleBackToExplore = () => {
+    // If inside the nested Explore stack, pop back if possible; otherwise navigate to Explore tab root
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('Explore');
+    }
+  };
+
   const handleViewAllReviews = () => {
     navigation.navigate('Reviews', { hotel });
   };
 
-  // Handle both local require and remote uri images consistently
   const imageSource = typeof hotel.image === 'string' ? { uri: hotel.image } : hotel.image;
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Image */}
         <View style={styles.imageContainer}>
           <Image 
             source={imageSource} 
@@ -72,28 +79,25 @@ const HotelDetailsScreen = ({ route, navigation }) => {
           />
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => navigation.goBack()}
+            onPress={handleBackToExplore}
           >
             <Ionicons name="arrow-back" size={24} color={COLORS.white} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.content}>
-          {/* Hotel Name & Location */}
           <Text style={styles.name}>{hotel.name}</Text>
           <View style={styles.locationContainer}>
             <Ionicons name="location" size={18} color={COLORS.primary} />
             <Text style={styles.location}>{hotel.location}</Text>
           </View>
 
-          {/* Rating */}
           <View style={styles.ratingContainer}>
             <Ionicons name="star" size={20} color={COLORS.warning} />
             <Text style={styles.rating}>{hotel.rating}</Text>
             <Text style={styles.reviews}>({hotel.reviews} reviews)</Text>
           </View>
 
-          {/* Weather Widget */}
           {loadingWeather ? (
             <View style={styles.weatherContainer}>
               <ActivityIndicator size="small" color={COLORS.primary} />
@@ -110,13 +114,11 @@ const HotelDetailsScreen = ({ route, navigation }) => {
             </View>
           ) : null}
 
-          {/* Description */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Description</Text>
             <Text style={styles.description}>{hotel.description}</Text>
           </View>
 
-          {/* Amenities */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Amenities</Text>
             <View style={styles.amenitiesContainer}>
@@ -129,7 +131,6 @@ const HotelDetailsScreen = ({ route, navigation }) => {
             </View>
           </View>
 
-          {/* Reviews Preview */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Recent Reviews</Text>
@@ -160,7 +161,6 @@ const HotelDetailsScreen = ({ route, navigation }) => {
             )}
           </View>
 
-          {/* Price & Book Button */}
           <View style={styles.footer}>
             <View style={styles.priceSection}>
               <Text style={styles.priceLabel}>Price per night</Text>
@@ -179,183 +179,41 @@ const HotelDetailsScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-  },
-  imageContainer: {
-    position: 'relative',
-  },
-  image: {
-    width: '100%',
-    height: 300,
-    backgroundColor: COLORS.lightGray,
-  },
-  backButton: {
-    position: 'absolute',
-    top: 40,
-    left: SIZES.padding,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.overlay,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    padding: SIZES.padding * 2,
-  },
-  name: {
-    fontSize: SIZES.h3,
-    color: COLORS.text,
-    marginBottom: SIZES.base,
-    fontWeight: '700',
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SIZES.padding,
-  },
-  location: {
-    fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
-    marginLeft: 5,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SIZES.padding,
-  },
-  rating: {
-    fontSize: SIZES.body1,
-    color: COLORS.text,
-    marginLeft: 5,
-    fontWeight: '600',
-  },
-  reviews: {
-    fontSize: SIZES.body3,
-    color: COLORS.textSecondary,
-    marginLeft: 5,
-  },
-  weatherContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-    padding: SIZES.padding,
-    borderRadius: SIZES.radius,
-    marginBottom: SIZES.padding * 2,
-  },
-  weatherInfo: {
-    marginLeft: SIZES.padding,
-  },
-  weatherTemp: {
-    fontSize: SIZES.h5,
-    color: COLORS.text,
-    fontWeight: 'bold',
-  },
-  weatherDesc: {
-    fontSize: SIZES.caption,
-    color: COLORS.textSecondary,
-    textTransform: 'capitalize',
-  },
-  section: {
-    marginBottom: SIZES.padding * 2,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SIZES.padding,
-  },
-  sectionTitle: {
-    fontSize: SIZES.h5,
-    color: COLORS.text,
-    fontWeight: '600',
-    marginBottom: SIZES.padding,
-  },
-  description: {
-    fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
-    lineHeight: 22,
-  },
-  amenitiesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  amenityChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-    paddingHorizontal: SIZES.padding,
-    paddingVertical: SIZES.base,
-    borderRadius: SIZES.radius,
-    marginRight: SIZES.base,
-    marginBottom: SIZES.base,
-  },
-  amenityText: {
-    fontSize: SIZES.caption,
-    color: COLORS.text,
-    marginLeft: 5,
-  },
-  viewAllText: {
-    fontSize: SIZES.body2,
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  reviewCard: {
-    backgroundColor: COLORS.background,
-    padding: SIZES.padding,
-    borderRadius: SIZES.radius,
-    marginBottom: SIZES.base,
-  },
-  reviewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: SIZES.base,
-  },
-  reviewUser: {
-    fontSize: SIZES.body2,
-    color: COLORS.text,
-    fontWeight: '600',
-  },
-  reviewRating: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  reviewRatingText: {
-    fontSize: SIZES.caption,
-    color: COLORS.text,
-    marginLeft: 3,
-  },
-  reviewComment: {
-    fontSize: SIZES.caption,
-    color: COLORS.textSecondary,
-    lineHeight: 18,
-  },
-  noReviews: {
-    fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
-    fontStyle: 'italic',
-  },
-  footer: {
-    marginTop: SIZES.padding,
-  },
-  priceSection: {
-    marginBottom: SIZES.padding,
-  },
-  priceLabel: {
-    fontSize: SIZES.caption,
-    color: COLORS.textSecondary,
-    marginBottom: 5,
-  },
-  price: {
-    fontSize: SIZES.h3,
-    color: COLORS.primary,
-    fontWeight: 'bold',
-  },
-  bookButton: {
-    width: '100%',
-  },
+  container: { flex: 1, backgroundColor: COLORS.white },
+  imageContainer: { position: 'relative' },
+  image: { width: '100%', height: 300, backgroundColor: COLORS.lightGray },
+  backButton: { position: 'absolute', top: 40, left: SIZES.padding, width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.overlay, justifyContent: 'center', alignItems: 'center' },
+  content: { padding: SIZES.padding * 2 },
+  name: { fontSize: SIZES.h3, color: COLORS.text, marginBottom: SIZES.base, fontWeight: '700' },
+  locationContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.padding },
+  location: { fontSize: SIZES.body2, color: COLORS.textSecondary, marginLeft: 5 },
+  ratingContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.padding },
+  rating: { fontSize: SIZES.body1, color: COLORS.text, marginLeft: 5, fontWeight: '600' },
+  reviews: { fontSize: SIZES.body3, color: COLORS.textSecondary, marginLeft: 5 },
+  weatherContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.background, padding: SIZES.padding, borderRadius: SIZES.radius, marginBottom: SIZES.padding * 2 },
+  weatherInfo: { marginLeft: SIZES.padding },
+  weatherTemp: { fontSize: SIZES.h5, color: COLORS.text, fontWeight: 'bold' },
+  weatherDesc: { fontSize: SIZES.caption, color: COLORS.textSecondary, textTransform: 'capitalize' },
+  section: { marginBottom: SIZES.padding * 2 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SIZES.padding },
+  sectionTitle: { fontSize: SIZES.h5, color: COLORS.text, fontWeight: '600', marginBottom: SIZES.padding },
+  description: { fontSize: SIZES.body2, color: COLORS.textSecondary, lineHeight: 22 },
+  amenitiesContainer: { flexDirection: 'row', flexWrap: 'wrap' },
+  amenityChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.background, paddingHorizontal: SIZES.padding, paddingVertical: SIZES.base, borderRadius: SIZES.radius, marginRight: SIZES.base, marginBottom: SIZES.base },
+  amenityText: { fontSize: SIZES.caption, color: COLORS.text, marginLeft: 5 },
+  viewAllText: { fontSize: SIZES.body2, color: COLORS.primary, fontWeight: '600' },
+  reviewCard: { backgroundColor: COLORS.background, padding: SIZES.padding, borderRadius: SIZES.radius, marginBottom: SIZES.base },
+  reviewHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SIZES.base },
+  reviewUser: { fontSize: SIZES.body2, color: COLORS.text, fontWeight: '600' },
+  reviewRating: { flexDirection: 'row', alignItems: 'center' },
+  reviewRatingText: { fontSize: SIZES.caption, color: COLORS.text, marginLeft: 3 },
+  reviewComment: { fontSize: SIZES.caption, color: COLORS.textSecondary, lineHeight: 18 },
+  noReviews: { fontSize: SIZES.body2, color: COLORS.textSecondary, fontStyle: 'italic' },
+  footer: { marginTop: SIZES.padding },
+  priceSection: { marginBottom: SIZES.padding },
+  priceLabel: { fontSize: SIZES.caption, color: COLORS.textSecondary, marginBottom: 5 },
+  price: { fontSize: SIZES.h3, color: COLORS.primary, fontWeight: 'bold' },
+  bookButton: { width: '100%' },
 });
 
 export default HotelDetailsScreen;
