@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { signOutUser } from '../../services/authService';
 
 const headerImg = require('../../../materials/14-Map Page/image-4.png');
-const avatarImg = require('../../../materials/09-Account Page/avatar.png');
+const avatarImg = require('../../../materials/09-Account Page/image-1.png');
 
 const favorites = [
   { id: 'f1', image: require('../../../materials/06-Explore Page/image-1.png'), title: 'Citadines Berawa' },
@@ -92,11 +92,9 @@ const styles = StyleSheet.create({
   signOutText: { color: COLORS.white, fontSize: SIZES.body2 },
   avatarWrap: { position: 'absolute', bottom: -30, left: SIZES.padding },
   avatar: { width: 60, height: 60, borderRadius: 30, borderWidth: 3, borderColor: COLORS.white },
-
   card: { backgroundColor: COLORS.white, marginTop: 40, marginHorizontal: SIZES.padding, borderRadius: SIZES.radius, padding: SIZES.padding, ...SHADOWS.light },
   name: { fontSize: SIZES.h3, color: COLORS.text, fontWeight: '700' },
   email: { fontSize: SIZES.body2, color: COLORS.gray, marginBottom: SIZES.padding },
-
   progressCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.background, borderRadius: SIZES.radius, padding: SIZES.padding, marginBottom: SIZES.padding },
   progressEmoji: { width: 36, height: 36, borderRadius: 18, marginRight: 10 },
   progressText: { fontSize: SIZES.body2, color: COLORS.text, marginBottom: 6 },
@@ -104,17 +102,14 @@ const styles = StyleSheet.create({
   completeBtnText: { color: COLORS.primary, fontWeight: '600' },
   progressBadge: { width: 46, height: 46, borderRadius: 23, backgroundColor: COLORS.white, alignItems: 'center', justifyContent: 'center', ...SHADOWS.light },
   progressBadgeText: { color: COLORS.gray, fontWeight: '700' },
-
   statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SIZES.padding },
   stat: { alignItems: 'center', flex: 1 },
   statNum: { fontSize: SIZES.h3, color: COLORS.text, fontWeight: '700' },
   statLabel: { fontSize: SIZES.caption, color: COLORS.textSecondary },
-
   section: { marginTop: SIZES.padding, paddingHorizontal: SIZES.padding },
   sectionTitle: { fontSize: SIZES.h4, color: COLORS.text, marginBottom: SIZES.base, fontWeight: '600' },
   favItem: { width: 140, height: 84, marginRight: 12, borderRadius: SIZES.radius, overflow: 'hidden', backgroundColor: COLORS.lightGray },
   favImg: { width: '100%', height: '100%' },
-
   modalOverlay: { flex: 1, backgroundColor: COLORS.overlay, alignItems: 'center', justifyContent: 'flex-end' },
   modalCard: { backgroundColor: COLORS.white, width: '100%', borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: SIZES.padding * 2 },
   modalTitle: { fontSize: SIZES.h4, color: COLORS.text, fontWeight: '700', marginBottom: 8 },
