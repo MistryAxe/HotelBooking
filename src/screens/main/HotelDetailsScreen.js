@@ -57,12 +57,19 @@ const HotelDetailsScreen = ({ route, navigation }) => {
     navigation.navigate('Reviews', { hotel });
   };
 
+  // Handle both local require and remote uri images consistently
+  const imageSource = typeof hotel.image === 'string' ? { uri: hotel.image } : hotel.image;
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Image */}
         <View style={styles.imageContainer}>
-          <Image source={{ uri: hotel.image }} style={styles.image} />
+          <Image 
+            source={imageSource} 
+            style={styles.image} 
+            defaultSource={require('../../../materials/10-Hotel Detail Page/image-1.png')}
+          />
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
@@ -199,9 +206,10 @@ const styles = StyleSheet.create({
     padding: SIZES.padding * 2,
   },
   name: {
-    ...FONTS.h3,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.h3,
+    color: COLORS.text,
     marginBottom: SIZES.base,
+    fontWeight: '700',
   },
   locationContainer: {
     flexDirection: 'row',
@@ -209,7 +217,7 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.padding,
   },
   location: {
-    ...FONTS.body,
+    fontSize: SIZES.body2,
     color: COLORS.textSecondary,
     marginLeft: 5,
   },
@@ -219,13 +227,13 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.padding,
   },
   rating: {
-    ...FONTS.h6,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.body1,
+    color: COLORS.text,
     marginLeft: 5,
     fontWeight: '600',
   },
   reviews: {
-    ...FONTS.body,
+    fontSize: SIZES.body3,
     color: COLORS.textSecondary,
     marginLeft: 5,
   },
@@ -241,12 +249,12 @@ const styles = StyleSheet.create({
     marginLeft: SIZES.padding,
   },
   weatherTemp: {
-    ...FONTS.h5,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.h5,
+    color: COLORS.text,
     fontWeight: 'bold',
   },
   weatherDesc: {
-    ...FONTS.caption,
+    fontSize: SIZES.caption,
     color: COLORS.textSecondary,
     textTransform: 'capitalize',
   },
@@ -260,13 +268,13 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.padding,
   },
   sectionTitle: {
-    ...FONTS.h5,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.h5,
+    color: COLORS.text,
     fontWeight: '600',
     marginBottom: SIZES.padding,
   },
   description: {
-    ...FONTS.body,
+    fontSize: SIZES.body2,
     color: COLORS.textSecondary,
     lineHeight: 22,
   },
@@ -285,12 +293,12 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.base,
   },
   amenityText: {
-    ...FONTS.caption,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.caption,
+    color: COLORS.text,
     marginLeft: 5,
   },
   viewAllText: {
-    ...FONTS.body,
+    fontSize: SIZES.body2,
     color: COLORS.primary,
     fontWeight: '600',
   },
@@ -306,8 +314,8 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.base,
   },
   reviewUser: {
-    ...FONTS.body,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.body2,
+    color: COLORS.text,
     fontWeight: '600',
   },
   reviewRating: {
@@ -315,17 +323,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   reviewRatingText: {
-    ...FONTS.caption,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.caption,
+    color: COLORS.text,
     marginLeft: 3,
   },
   reviewComment: {
-    ...FONTS.caption,
+    fontSize: SIZES.caption,
     color: COLORS.textSecondary,
     lineHeight: 18,
   },
   noReviews: {
-    ...FONTS.body,
+    fontSize: SIZES.body2,
     color: COLORS.textSecondary,
     fontStyle: 'italic',
   },
@@ -336,12 +344,12 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.padding,
   },
   priceLabel: {
-    ...FONTS.caption,
+    fontSize: SIZES.caption,
     color: COLORS.textSecondary,
     marginBottom: 5,
   },
   price: {
-    ...FONTS.h3,
+    fontSize: SIZES.h3,
     color: COLORS.primary,
     fontWeight: 'bold',
   },
