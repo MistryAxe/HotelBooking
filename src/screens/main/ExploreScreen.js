@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -18,71 +18,11 @@ import { COLORS, SIZES, SHADOWS } from '../../constants/theme';
 
 // Local images from materials folder
 const SAMPLE_HOTELS = [
-  {
-    id: '1',
-    name: 'Grand Plaza Hotel',
-    location: 'New York, USA',
-    rating: 4.8,
-    reviews: 256,
-    price: 250,
-    image: require('../../../materials/06-Explore Page/image-1.png'),
-    description: 'Luxury hotel in the heart of Manhattan with stunning city views and world-class amenities',
-    amenities: ['WiFi', 'Pool', 'Gym', 'Restaurant', 'Spa', 'Parking'],
-    latitude: 40.7589,
-    longitude: -73.9851,
-  },
-  {
-    id: '2',
-    name: 'Seaside Resort',
-    location: 'Miami Beach, USA',
-    rating: 4.6,
-    reviews: 189,
-    price: 180,
-    image: require('../../../materials/06-Explore Page/image-4.png'),
-    description: 'Beautiful beachfront resort with ocean views and private beach access',
-    amenities: ['WiFi', 'Beach Access', 'Pool', 'Bar', 'Water Sports'],
-    latitude: 25.7907,
-    longitude: -80.1300,
-  },
-  {
-    id: '3',
-    name: 'Mountain Lodge',
-    location: 'Aspen, Colorado',
-    rating: 4.9,
-    reviews: 312,
-    price: 320,
-    image: require('../../../materials/06-Explore Page/image-13.png'),
-    description: 'Cozy lodge with stunning mountain views and direct ski slope access',
-    amenities: ['WiFi', 'Fireplace', 'Ski Access', 'Restaurant', 'Spa'],
-    latitude: 39.1911,
-    longitude: -106.8175,
-  },
-  {
-    id: '4',
-    name: 'Urban Boutique Hotel',
-    location: 'San Francisco, USA',
-    rating: 4.7,
-    reviews: 203,
-    price: 210,
-    image: require('../../../materials/06-Explore Page/image-14.png'),
-    description: 'Stylish boutique hotel in downtown SF with modern design and rooftop bar',
-    amenities: ['WiFi', 'Rooftop Bar', 'Gym', 'Parking', 'Business Center'],
-    latitude: 37.7749,
-    longitude: -122.4194,
-  },
-  {
-    id: '5',
-    name: 'Luxury Resort & Spa',
-    location: 'Los Angeles, USA',
-    rating: 4.8,
-    reviews: 445,
-    price: 380,
-    image: require('../../../materials/10-Hotel Detail Page/image-1.png'),
-    description: 'Five-star resort with premium spa facilities and gourmet dining',
-    amenities: ['WiFi', 'Spa', 'Pool', 'Restaurant', 'Valet', 'Concierge'],
-    latitude: 34.0522,
-    longitude: -118.2437,
-  },
+  { id: '1', name: 'Grand Plaza Hotel', location: 'New York, USA', rating: 4.8, reviews: 256, price: 250, image: require('../../../materials/06-Explore Page/image-1.png'), latitude: 40.7589, longitude: -73.9851, description: 'Luxury hotel in the heart of Manhattan with stunning city views and world-class amenities', amenities: ['WiFi', 'Pool', 'Gym', 'Restaurant', 'Spa', 'Parking'] },
+  { id: '2', name: 'Seaside Resort', location: 'Miami Beach, USA', rating: 4.6, reviews: 189, price: 180, image: require('../../../materials/06-Explore Page/image-4.png'), latitude: 25.7907, longitude: -80.1300, description: 'Beautiful beachfront resort with ocean views and private beach access', amenities: ['WiFi', 'Beach Access', 'Pool', 'Bar', 'Water Sports'] },
+  { id: '3', name: 'Mountain Lodge', location: 'Aspen, Colorado', rating: 4.9, reviews: 312, price: 320, image: require('../../../materials/06-Explore Page/image-13.png'), latitude: 39.1911, longitude: -106.8175, description: 'Cozy lodge with stunning mountain views and direct ski slope access', amenities: ['WiFi', 'Fireplace', 'Ski Access', 'Restaurant', 'Spa'] },
+  { id: '4', name: 'Urban Boutique Hotel', location: 'San Francisco, USA', rating: 4.7, reviews: 203, price: 210, image: require('../../../materials/06-Explore Page/image-14.png'), latitude: 37.7749, longitude: -122.4194, description: 'Stylish boutique hotel in downtown SF with modern design and rooftop bar', amenities: ['WiFi', 'Rooftop Bar', 'Gym', 'Parking', 'Business Center'] },
+  { id: '5', name: 'Luxury Resort & Spa', location: 'Los Angeles, USA', rating: 4.8, reviews: 445, price: 380, image: require('../../../materials/10-Hotel Detail Page/image-1.png'), latitude: 34.0522, longitude: -118.2437, description: 'Five-star resort with premium spa facilities and gourmet dining', amenities: ['WiFi', 'Spa', 'Pool', 'Restaurant', 'Valet', 'Concierge'] },
 ];
 
 const ExploreScreen = ({ navigation, route }) => {
@@ -93,17 +33,20 @@ const ExploreScreen = ({ navigation, route }) => {
   const [searchQuery, setSearchQuery] = useState(presetQuery);
   const [sortBy, setSortBy] = useState('rating');
   const [refreshing, setRefreshing] = useState(false);
+  const debounceRef = useRef(null);
 
-  useEffect(() => {
-    loadHotels();
-  }, []);
+  useEffect(() => { loadHotels(); }, []);
 
+  // Debounce filtering to avoid interruptions while typing
   useEffect(() => {
-    filterAndSortHotels();
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      filterAndSortHotels();
+    }, 250); // 250ms debounce feels instant but avoids per-keystroke rerenders
+    return () => clearTimeout(debounceRef.current);
   }, [searchQuery, sortBy, hotels]);
 
   useEffect(() => {
-    // If a new presetQuery arrives (from Map), update the search field
     if (route?.params?.presetQuery !== undefined) {
       setSearchQuery(route.params.presetQuery);
     }
@@ -115,7 +58,7 @@ const ExploreScreen = ({ navigation, route }) => {
       setTimeout(() => {
         setHotels(SAMPLE_HOTELS);
         setLoading(false);
-      }, 300);
+      }, 200);
     } catch (error) {
       console.error('Error loading hotels:', error);
       Alert.alert('Error', 'Failed to load hotels. Please try again.');
@@ -131,7 +74,6 @@ const ExploreScreen = ({ navigation, route }) => {
 
   const filterAndSortHotels = () => {
     let filtered = [...hotels];
-
     const q = searchQuery.trim().toLowerCase();
     if (q.length > 0) {
       filtered = filtered.filter(hotel =>
@@ -139,13 +81,11 @@ const ExploreScreen = ({ navigation, route }) => {
         hotel.location.toLowerCase().includes(q)
       );
     }
-
     if (sortBy === 'rating') {
       filtered.sort((a, b) => b.rating - a.rating);
     } else if (sortBy === 'price') {
       filtered.sort((a, b) => a.price - b.price);
     }
-
     setFilteredHotels(filtered);
   };
 
@@ -175,6 +115,10 @@ const ExploreScreen = ({ navigation, route }) => {
           importantForAutofill="no"
           accessibilityLabel="Search hotels or locations"
           accessibilityHint="Type a hotel name or a location"
+          enterKeyHint="search"
+          returnKeyType="search"
+          blurOnSubmit={false}
+          onSubmitEditing={() => filterAndSortHotels()}
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery('')}>
@@ -189,17 +133,13 @@ const ExploreScreen = ({ navigation, route }) => {
           style={[styles.sortButton, sortBy === 'rating' && styles.sortButtonActive]}
           onPress={() => setSortBy('rating')}
         >
-          <Text style={[styles.sortButtonText, sortBy === 'rating' && styles.sortButtonTextActive]}>
-            Rating
-          </Text>
+          <Text style={[styles.sortButtonText, sortBy === 'rating' && styles.sortButtonTextActive]}>Rating</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.sortButton, sortBy === 'price' && styles.sortButtonActive]}
           onPress={() => setSortBy('price')}
         >
-          <Text style={[styles.sortButtonText, sortBy === 'price' && styles.sortButtonTextActive]}>
-            Price
-          </Text>
+          <Text style={[styles.sortButtonText, sortBy === 'price' && styles.sortButtonTextActive]}>Price</Text>
         </TouchableOpacity>
       </View>
 
