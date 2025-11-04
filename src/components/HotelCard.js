@@ -4,9 +4,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 
 const HotelCard = ({ hotel, onPress }) => {
+  // Handle both local (require) and remote (uri) images
+  const imageSource = typeof hotel.image === 'string' 
+    ? { uri: hotel.image }
+    : hotel.image;
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
-      <Image source={{ uri: hotel.image }} style={styles.image} />
+      <Image 
+        source={imageSource} 
+        style={styles.image}
+        defaultSource={{ uri: 'https://via.placeholder.com/300x200?text=Hotel+Image' }}
+        onError={(e) => console.log('Image loading error:', e.nativeEvent.error)}
+      />
       
       <View style={styles.content}>
         <Text style={styles.name} numberOfLines={1}>{hotel.name}</Text>
@@ -18,7 +28,7 @@ const HotelCard = ({ hotel, onPress }) => {
 
         <View style={styles.footer}>
           <View style={styles.ratingContainer}>
-            <Ionicons name="star" size={16} color={COLORS.warning} />
+            <Ionicons name="star" size={16} color={COLORS.rating} />
             <Text style={styles.rating}>{hotel.rating}</Text>
             <Text style={styles.reviews}>({hotel.reviews} reviews)</Text>
           </View>
@@ -36,7 +46,7 @@ const HotelCard = ({ hotel, onPress }) => {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.white,
-    borderRadius: SIZES.radius,
+    borderRadius: SIZES.cardRadius,
     marginBottom: SIZES.padding,
     ...SHADOWS.medium,
     overflow: 'hidden',
@@ -45,13 +55,15 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
     backgroundColor: COLORS.lightGray,
+    resizeMode: 'cover',
   },
   content: {
     padding: SIZES.padding,
   },
   name: {
-    ...FONTS.h5,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.h3,
+    fontWeight: 'bold',
+    color: COLORS.text,
     marginBottom: 5,
   },
   locationContainer: {
@@ -60,7 +72,7 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.base,
   },
   location: {
-    ...FONTS.caption,
+    fontSize: SIZES.body3,
     color: COLORS.textSecondary,
     marginLeft: 5,
     flex: 1,
@@ -76,13 +88,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rating: {
-    ...FONTS.body,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.body2,
+    color: COLORS.text,
     marginLeft: 5,
     fontWeight: '600',
   },
   reviews: {
-    ...FONTS.caption,
+    fontSize: SIZES.body3,
     color: COLORS.textSecondary,
     marginLeft: 5,
   },
@@ -91,12 +103,12 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
   },
   price: {
-    ...FONTS.h5,
+    fontSize: SIZES.h3,
     color: COLORS.primary,
     fontWeight: 'bold',
   },
   perNight: {
-    ...FONTS.caption,
+    fontSize: SIZES.body3,
     color: COLORS.textSecondary,
   },
 });
