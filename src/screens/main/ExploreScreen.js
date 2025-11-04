@@ -16,7 +16,6 @@ import { Ionicons } from '@expo/vector-icons';
 import HotelCard from '../../components/HotelCard';
 import { COLORS, SIZES, SHADOWS } from '../../constants/theme';
 
-// Local images from materials folder
 const SAMPLE_HOTELS = [
   { id: '1', name: 'Grand Plaza Hotel', location: 'New York, USA', rating: 4.8, reviews: 256, price: 250, image: require('../../../materials/06-Explore Page/image-1.png'), latitude: 40.7589, longitude: -73.9851, description: 'Luxury hotel in the heart of Manhattan with stunning city views and world-class amenities', amenities: ['WiFi', 'Pool', 'Gym', 'Restaurant', 'Spa', 'Parking'] },
   { id: '2', name: 'Seaside Resort', location: 'Miami Beach, USA', rating: 4.6, reviews: 189, price: 180, image: require('../../../materials/06-Explore Page/image-4.png'), latitude: 25.7907, longitude: -80.1300, description: 'Beautiful beachfront resort with ocean views and private beach access', amenities: ['WiFi', 'Beach Access', 'Pool', 'Bar', 'Water Sports'] },
@@ -37,12 +36,11 @@ const ExploreScreen = ({ navigation, route }) => {
 
   useEffect(() => { loadHotels(); }, []);
 
-  // Debounce filtering to avoid interruptions while typing
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       filterAndSortHotels();
-    }, 250); // 250ms debounce feels instant but avoids per-keystroke rerenders
+    }, 250);
     return () => clearTimeout(debounceRef.current);
   }, [searchQuery, sortBy, hotels]);
 
