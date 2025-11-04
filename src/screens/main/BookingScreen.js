@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -7,12 +7,9 @@ import { COLORS, SIZES, SHADOWS } from '../../constants/theme';
 import { useAuth } from '../../context/AuthContext';
 import { createOrUpdateBooking, cancelBookingById } from '../../services/firestoreService';
 
-const roomThumb1 = require('../../../materials/11-Select Room Page/Frame 2.png');
-const roomThumb2 = require('../../../materials/11-Select Room Page/Frame 3.png');
-
 const ROOMS = [
-  { id: 'r1', title: 'Grand Deluxe Double with Private Pool', beds: '1 Double', guests: 2, size: '150m2', price: 305, left: 5, image: roomThumb1 },
-  { id: 'r2', title: 'Grand Deluxe Double with Private Pool', beds: '1 Double', guests: 2, size: '150m2', price: 305, left: 5, image: roomThumb2 },
+  { id: 'r1', title: 'Grand Deluxe Double with Private Pool', beds: '1 Double', guests: 2, size: '150m2', price: 305, left: 5 },
+  { id: 'r2', title: 'Grand Deluxe Double with Private Pool', beds: '1 Double', guests: 2, size: '150m2', price: 305, left: 5 },
 ];
 
 const BookingScreen = ({ route, navigation }) => {
@@ -29,8 +26,6 @@ const BookingScreen = ({ route, navigation }) => {
   const total = selectedRoom.price * nights;
 
   const changeDates = () => { setShowIn(true); };
-  const savePlan = () => { if (checkOut <= checkIn) return Alert.alert('Invalid dates', 'Check-out must be after check-in.'); };
-
   const confirmBooking = async () => {
     if (!user) return navigation.navigate('Auth');
     const payload = { userId: user.uid, hotelId: hotel.id, checkIn: checkIn.toISOString(), checkOut: checkOut.toISOString(), guests, totalPrice: total, status: 'active', roomId: selectedRoom.id, createdAt: new Date().toISOString() };
