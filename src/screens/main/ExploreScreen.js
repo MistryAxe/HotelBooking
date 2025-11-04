@@ -7,13 +7,14 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   TextInput,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import HotelCard from '../../components/HotelCard';
-import { COLORS, SIZES, FONTS } from '../../constants/theme';
+import { COLORS, SIZES } from '../../constants/theme';
 
-// Sample hotel data with actual images from materials folder
+// Sample hotel data with online images
 const SAMPLE_HOTELS = [
   {
     id: '1',
@@ -22,7 +23,7 @@ const SAMPLE_HOTELS = [
     rating: 4.8,
     reviews: 256,
     price: 250,
-    image: require('../../../materials/06-Explore Page/image-1.png'),
+    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
     description: 'Luxury hotel in the heart of Manhattan with stunning city views and world-class amenities',
     amenities: ['WiFi', 'Pool', 'Gym', 'Restaurant', 'Spa', 'Parking'],
     latitude: 40.7589,
@@ -35,7 +36,7 @@ const SAMPLE_HOTELS = [
     rating: 4.6,
     reviews: 189,
     price: 180,
-    image: require('../../../materials/06-Explore Page/image-4.png'),
+    image: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1449&q=80',
     description: 'Beautiful beachfront resort with ocean views and private beach access',
     amenities: ['WiFi', 'Beach Access', 'Pool', 'Bar', 'Water Sports'],
     latitude: 25.7907,
@@ -48,7 +49,7 @@ const SAMPLE_HOTELS = [
     rating: 4.9,
     reviews: 312,
     price: 320,
-    image: require('../../../materials/06-Explore Page/image-13.png'),
+    image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
     description: 'Cozy lodge with stunning mountain views and direct ski slope access',
     amenities: ['WiFi', 'Fireplace', 'Ski Access', 'Restaurant', 'Spa'],
     latitude: 39.1911,
@@ -61,7 +62,7 @@ const SAMPLE_HOTELS = [
     rating: 4.7,
     reviews: 203,
     price: 210,
-    image: require('../../../materials/06-Explore Page/image-14.png'),
+    image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
     description: 'Stylish boutique hotel in downtown SF with modern design and rooftop bar',
     amenities: ['WiFi', 'Rooftop Bar', 'Gym', 'Parking', 'Business Center'],
     latitude: 37.7749,
@@ -74,11 +75,24 @@ const SAMPLE_HOTELS = [
     rating: 4.8,
     reviews: 445,
     price: 380,
-    image: require('../../../materials/10-Hotel Detail Page/image-1.png'),
+    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
     description: 'Five-star resort with premium spa facilities and gourmet dining',
     amenities: ['WiFi', 'Spa', 'Pool', 'Restaurant', 'Valet', 'Concierge'],
     latitude: 34.0522,
     longitude: -118.2437,
+  },
+  {
+    id: '6',
+    name: 'Historic Downtown Inn',
+    location: 'Boston, USA',
+    rating: 4.5,
+    reviews: 178,
+    price: 160,
+    image: 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+    description: 'Charming historic hotel with authentic colonial architecture',
+    amenities: ['WiFi', 'Restaurant', 'Parking', 'Business Center'],
+    latitude: 42.3601,
+    longitude: -71.0589,
   },
 ];
 
@@ -88,6 +102,7 @@ const ExploreScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('rating'); // rating, price
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadHotels();
@@ -98,20 +113,33 @@ const ExploreScreen = ({ navigation }) => {
   }, [searchQuery, sortBy, hotels]);
 
   const loadHotels = async () => {
-    setLoading(true);
-    // In production, fetch from Firebase
-    // const result = await getHotels();
-    setTimeout(() => {
-      setHotels(SAMPLE_HOTELS);
+    try {
+      setLoading(true);
+      // In production, fetch from Firebase
+      // const result = await getHotels();
+      // Simulate API call
+      setTimeout(() => {
+        setHotels(SAMPLE_HOTELS);
+        setLoading(false);
+      }, 1000);
+    } catch (error) {
+      console.error('Error loading hotels:', error);
+      Alert.alert('Error', 'Failed to load hotels. Please try again.');
       setLoading(false);
-    }, 1000);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadHotels();
+    setRefreshing(false);
   };
 
   const filterAndSortHotels = () => {
     let filtered = [...hotels];
 
     // Filter by search query
-    if (searchQuery) {
+    if (searchQuery.trim()) {
       filtered = filtered.filter(hotel =>
         hotel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         hotel.location.toLowerCase().includes(searchQuery.toLowerCase())
@@ -146,6 +174,11 @@ const ExploreScreen = ({ navigation }) => {
           onChangeText={setSearchQuery}
           placeholderTextColor={COLORS.gray}
         />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <Ionicons name="close-circle" size={20} color={COLORS.gray} />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Sort Options */}
@@ -168,6 +201,25 @@ const ExploreScreen = ({ navigation }) => {
           </Text>
         </TouchableOpacity>
       </View>
+      
+      {/* Results count */}
+      <Text style={styles.resultsText}>
+        {filteredHotels.length} hotel{filteredHotels.length !== 1 ? 's' : ''} found
+      </Text>
+    </View>
+  );
+
+  const renderEmptyComponent = () => (
+    <View style={styles.emptyContainer}>
+      <Ionicons name="search-outline" size={64} color={COLORS.gray} />
+      <Text style={styles.emptyText}>
+        {searchQuery ? `No hotels found for "${searchQuery}"` : 'No hotels found'}
+      </Text>
+      {searchQuery && (
+        <TouchableOpacity style={styles.clearButton} onPress={() => setSearchQuery('')}>
+          <Text style={styles.clearButtonText}>Clear Search</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -175,6 +227,7 @@ const ExploreScreen = ({ navigation }) => {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Loading hotels...</Text>
       </View>
     );
   }
@@ -188,13 +241,15 @@ const ExploreScreen = ({ navigation }) => {
         )}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={renderHeader}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={filteredHotels.length === 0 ? styles.emptyListContent : styles.listContent}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No hotels found</Text>
-          </View>
-        }
+        ListEmptyComponent={renderEmptyComponent}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        removeClippedSubviews={true}
+        initialNumToRender={5}
+        maxToRenderPerBatch={5}
+        windowSize={10}
       />
     </SafeAreaView>
   );
@@ -211,15 +266,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.background,
   },
+  loadingText: {
+    marginTop: SIZES.padding,
+    fontSize: SIZES.body2,
+    color: COLORS.textSecondary,
+  },
   listContent: {
+    padding: SIZES.padding,
+  },
+  emptyListContent: {
+    flexGrow: 1,
     padding: SIZES.padding,
   },
   header: {
     marginBottom: SIZES.padding,
   },
   title: {
-    ...FONTS.h2,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.h1,
+    fontWeight: 'bold',
+    color: COLORS.text,
     marginBottom: SIZES.padding,
   },
   searchContainer: {
@@ -230,19 +295,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: SIZES.padding,
     height: 50,
     marginBottom: SIZES.padding,
+    ...SHADOWS.light,
   },
   searchInput: {
     flex: 1,
     marginLeft: SIZES.base,
-    ...FONTS.body,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.body1,
+    color: COLORS.text,
   },
   sortContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: SIZES.base,
   },
   sortLabel: {
-    ...FONTS.body,
+    fontSize: SIZES.body2,
     color: COLORS.textSecondary,
     marginRight: SIZES.base,
   },
@@ -252,25 +319,49 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius,
     backgroundColor: COLORS.white,
     marginRight: SIZES.base,
+    borderWidth: 1,
+    borderColor: COLORS.lightGray,
   },
   sortButtonActive: {
     backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   sortButtonText: {
-    ...FONTS.body,
+    fontSize: SIZES.body2,
     color: COLORS.textSecondary,
   },
   sortButtonTextActive: {
     color: COLORS.white,
     fontWeight: '600',
   },
+  resultsText: {
+    fontSize: SIZES.body3,
+    color: COLORS.textSecondary,
+    marginTop: SIZES.base,
+  },
   emptyContainer: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: SIZES.padding * 3,
   },
   emptyText: {
-    ...FONTS.body,
+    fontSize: SIZES.body1,
     color: COLORS.textSecondary,
+    marginTop: SIZES.padding,
+    textAlign: 'center',
+  },
+  clearButton: {
+    marginTop: SIZES.padding,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SIZES.padding * 2,
+    paddingVertical: SIZES.base,
+    borderRadius: SIZES.radius,
+  },
+  clearButtonText: {
+    color: COLORS.white,
+    fontSize: SIZES.body2,
+    fontWeight: '600',
   },
 });
 
