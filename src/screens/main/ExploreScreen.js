@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import HotelCard from '../../components/HotelCard';
-import { COLORS, SIZES } from '../../constants/theme';
+import { COLORS, SIZES, SHADOWS } from '../../constants/theme';
 
 // Sample hotel data with online images
 const SAMPLE_HOTELS = [
