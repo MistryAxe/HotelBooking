@@ -7,8 +7,8 @@ import { COLORS, SIZES, SHADOWS } from '../../constants/theme';
 import { useAuth } from '../../context/AuthContext';
 import { createOrUpdateBooking, cancelBookingById } from '../../services/firestoreService';
 
-const roomThumb1 = require('../../../materials/11-Select Room Page/image-1.png');
-const roomThumb2 = require('../../../materials/11-Select Room Page/image-2.png');
+const roomThumb1 = require('../../../materials/11-Select Room Page/Frame 2.png');
+const roomThumb2 = require('../../../materials/11-Select Room Page/Frame 3.png');
 
 const ROOMS = [
   { id: 'r1', title: 'Grand Deluxe Double with Private Pool', beds: '1 Double', guests: 2, size: '150m2', price: 305, left: 5, image: roomThumb1 },
@@ -28,13 +28,8 @@ const BookingScreen = ({ route, navigation }) => {
   const nights = Math.max(1, Math.ceil((checkOut - checkIn) / 86400000));
   const total = selectedRoom.price * nights;
 
-  const changeDates = () => {
-    setShowIn(true);
-  };
-
-  const savePlan = () => {
-    if (checkOut <= checkIn) return Alert.alert('Invalid dates', 'Check-out must be after check-in.');
-  };
+  const changeDates = () => { setShowIn(true); };
+  const savePlan = () => { if (checkOut <= checkIn) return Alert.alert('Invalid dates', 'Check-out must be after check-in.'); };
 
   const confirmBooking = async () => {
     if (!user) return navigation.navigate('Auth');
