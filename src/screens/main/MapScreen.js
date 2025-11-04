@@ -11,7 +11,7 @@ const markers = [
 ];
 
 const MapScreen = ({ navigation }) => {
-  const mapSource = useMemo(() => require('../../../materials/14-Map Page/image-4.png'), []);
+  const mapSource = useMemo(() => require('../../../materials/14-Map Page/Group 292.png'), []);
   const pinSource = useMemo(() => require('../../../materials/15-Search Page/map-pin.png'), []);
 
   const handleMarkerPress = (marker) => {
