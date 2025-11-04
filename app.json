@@ -1,29 +1,32 @@
 {
   "expo": {
-    "name": "HotelBooking",
-    "slug": "HotelBooking",
+    "name": "Hotel Booking App",
+    "slug": "hotel-booking-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./materials/LOGO/80x80.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./materials/LOGO/120x120.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#1E90FF"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourcompany.hotelbookingapp"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./materials/LOGO/80x80.png",
+        "backgroundColor": "#1E90FF"
       },
-      "edgeToEdgeEnabled": true
+      "package": "com.yourcompany.hotelbookingapp"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./materials/LOGO/40x40.png"
     }
   }
 }
