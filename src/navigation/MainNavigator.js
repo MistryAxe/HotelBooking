@@ -12,6 +12,7 @@ import BookingSuccessScreen from '../screens/main/BookingSuccessScreen';
 import ReviewsScreen from '../screens/main/ReviewsScreen';
 import MyBookingsScreen from '../screens/main/MyBookingsScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
+import MapScreen from '../screens/main/MapScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -21,6 +22,7 @@ const ExploreStack = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ExploreScreen" component={ExploreScreen} />
+      <Stack.Screen name="Map" component={MapScreen} />
       <Stack.Screen name="HotelDetails" component={HotelDetailsScreen} />
       <Stack.Screen name="Booking" component={BookingScreen} />
       <Stack.Screen name="BookingSuccess" component={BookingSuccessScreen} />
