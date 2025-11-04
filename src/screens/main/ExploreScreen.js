@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,15 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import HotelCard from '../../components/HotelCard';
 import { COLORS, SIZES, SHADOWS } from '../../constants/theme';
 
-// Sample hotel data with local images from materials folder
+// Local images from materials folder
 const SAMPLE_HOTELS = [
   {
     id: '1',
@@ -83,12 +85,13 @@ const SAMPLE_HOTELS = [
   },
 ];
 
-const ExploreScreen = ({ navigation }) => {
+const ExploreScreen = ({ navigation, route }) => {
+  const presetQuery = route?.params?.presetQuery ?? '';
   const [hotels, setHotels] = useState([]);
   const [filteredHotels, setFilteredHotels] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('rating'); // rating, price
+  const [searchQuery, setSearchQuery] = useState(presetQuery);
+  const [sortBy, setSortBy] = useState('rating');
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -99,13 +102,20 @@ const ExploreScreen = ({ navigation }) => {
     filterAndSortHotels();
   }, [searchQuery, sortBy, hotels]);
 
+  useEffect(() => {
+    // If a new presetQuery arrives (from Map), update the search field
+    if (route?.params?.presetQuery !== undefined) {
+      setSearchQuery(route.params.presetQuery);
+    }
+  }, [route?.params?.presetQuery]);
+
   const loadHotels = async () => {
     try {
       setLoading(true);
       setTimeout(() => {
         setHotels(SAMPLE_HOTELS);
         setLoading(false);
-      }, 500);
+      }, 300);
     } catch (error) {
       console.error('Error loading hotels:', error);
       Alert.alert('Error', 'Failed to load hotels. Please try again.');
@@ -122,10 +132,11 @@ const ExploreScreen = ({ navigation }) => {
   const filterAndSortHotels = () => {
     let filtered = [...hotels];
 
-    if (searchQuery.trim()) {
+    const q = searchQuery.trim().toLowerCase();
+    if (q.length > 0) {
       filtered = filtered.filter(hotel =>
-        hotel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        hotel.location.toLowerCase().includes(searchQuery.toLowerCase())
+        hotel.name.toLowerCase().includes(q) ||
+        hotel.location.toLowerCase().includes(q)
       );
     }
 
@@ -144,7 +155,13 @@ const ExploreScreen = ({ navigation }) => {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text style={styles.title}>Explore Hotels</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>Explore Hotels</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Map')} style={styles.mapBtn}>
+          <Ionicons name="map-outline" size={22} color={COLORS.gray} />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.searchContainer}>
         <Ionicons name="search-outline" size={20} color={COLORS.gray} />
         <TextInput
@@ -153,6 +170,11 @@ const ExploreScreen = ({ navigation }) => {
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor={COLORS.gray}
+          autoCapitalize="none"
+          autoCorrect={false}
+          importantForAutofill="no"
+          accessibilityLabel="Search hotels or locations"
+          accessibilityHint="Type a hotel name or a location"
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery('')}>
@@ -187,20 +209,6 @@ const ExploreScreen = ({ navigation }) => {
     </View>
   );
 
-  const renderEmptyComponent = () => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="search-outline" size={64} color={COLORS.gray} />
-      <Text style={styles.emptyText}>
-        {searchQuery ? `No hotels found for "${searchQuery}"` : 'No hotels found'}
-      </Text>
-      {searchQuery && (
-        <TouchableOpacity style={styles.clearButton} onPress={() => setSearchQuery('')}>
-          <Text style={styles.clearButtonText}>Clear Search</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -212,23 +220,25 @@ const ExploreScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <FlatList
-        data={filteredHotels}
-        renderItem={({ item }) => (
-          <HotelCard hotel={item} onPress={() => handleHotelPress(item)} />
-        )}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={renderHeader}
-        contentContainerStyle={filteredHotels.length === 0 ? styles.emptyListContent : styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={renderEmptyComponent}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        removeClippedSubviews
-        initialNumToRender={5}
-        maxToRenderPerBatch={5}
-        windowSize={10}
-      />
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <FlatList
+          data={filteredHotels}
+          renderItem={({ item }) => (
+            <HotelCard hotel={item} onPress={() => handleHotelPress(item)} />
+          )}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={renderHeader}
+          contentContainerStyle={filteredHotels.length === 0 ? styles.emptyListContent : styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          removeClippedSubviews
+          initialNumToRender={5}
+          maxToRenderPerBatch={5}
+          windowSize={10}
+          keyboardShouldPersistTaps="handled"
+        />
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -240,8 +250,10 @@ const styles = StyleSheet.create({
   listContent: { padding: SIZES.padding },
   emptyListContent: { flexGrow: 1, padding: SIZES.padding },
   header: { marginBottom: SIZES.padding },
-  title: { fontSize: SIZES.h1, fontWeight: 'bold', color: COLORS.text, marginBottom: SIZES.padding },
-  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: SIZES.radius, paddingHorizontal: SIZES.padding, height: 50, marginBottom: SIZES.padding, ...SHADOWS.light },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: SIZES.base },
+  mapBtn: { padding: SIZES.base, borderRadius: SIZES.radius, backgroundColor: COLORS.white, ...SHADOWS.light },
+  title: { fontSize: SIZES.h1, fontWeight: 'bold', color: COLORS.text },
+  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: SIZES.radius, paddingHorizontal: SIZES.padding, height: 50, marginTop: SIZES.base, marginBottom: SIZES.padding, ...SHADOWS.light },
   searchInput: { flex: 1, marginLeft: SIZES.base, fontSize: SIZES.body1, color: COLORS.text },
   sortContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.base },
   sortLabel: { fontSize: SIZES.body2, color: COLORS.textSecondary, marginRight: SIZES.base },
@@ -250,10 +262,6 @@ const styles = StyleSheet.create({
   sortButtonText: { fontSize: SIZES.body2, color: COLORS.textSecondary },
   sortButtonTextActive: { color: COLORS.white, fontWeight: '600' },
   resultsText: { fontSize: SIZES.body3, color: COLORS.textSecondary, marginTop: SIZES.base },
-  emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: SIZES.padding * 3 },
-  emptyText: { fontSize: SIZES.body1, color: COLORS.textSecondary, marginTop: SIZES.padding, textAlign: 'center' },
-  clearButton: { marginTop: SIZES.padding, backgroundColor: COLORS.primary, paddingHorizontal: SIZES.padding * 2, paddingVertical: SIZES.base, borderRadius: SIZES.radius },
-  clearButtonText: { color: COLORS.white, fontSize: SIZES.body2, fontWeight: '600' },
 });
 
 export default ExploreScreen;
