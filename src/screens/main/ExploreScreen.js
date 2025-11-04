@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import HotelCard from '../../components/HotelCard';
 import { COLORS, SIZES, SHADOWS } from '../../constants/theme';
 
-// Sample hotel data with online images
+// Sample hotel data with local images from materials folder
 const SAMPLE_HOTELS = [
   {
     id: '1',
@@ -23,7 +23,7 @@ const SAMPLE_HOTELS = [
     rating: 4.8,
     reviews: 256,
     price: 250,
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+    image: require('../../../materials/06-Explore Page/image-1.png'),
     description: 'Luxury hotel in the heart of Manhattan with stunning city views and world-class amenities',
     amenities: ['WiFi', 'Pool', 'Gym', 'Restaurant', 'Spa', 'Parking'],
     latitude: 40.7589,
@@ -36,7 +36,7 @@ const SAMPLE_HOTELS = [
     rating: 4.6,
     reviews: 189,
     price: 180,
-    image: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1449&q=80',
+    image: require('../../../materials/06-Explore Page/image-4.png'),
     description: 'Beautiful beachfront resort with ocean views and private beach access',
     amenities: ['WiFi', 'Beach Access', 'Pool', 'Bar', 'Water Sports'],
     latitude: 25.7907,
@@ -49,7 +49,7 @@ const SAMPLE_HOTELS = [
     rating: 4.9,
     reviews: 312,
     price: 320,
-    image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+    image: require('../../../materials/06-Explore Page/image-13.png'),
     description: 'Cozy lodge with stunning mountain views and direct ski slope access',
     amenities: ['WiFi', 'Fireplace', 'Ski Access', 'Restaurant', 'Spa'],
     latitude: 39.1911,
@@ -62,7 +62,7 @@ const SAMPLE_HOTELS = [
     rating: 4.7,
     reviews: 203,
     price: 210,
-    image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+    image: require('../../../materials/06-Explore Page/image-14.png'),
     description: 'Stylish boutique hotel in downtown SF with modern design and rooftop bar',
     amenities: ['WiFi', 'Rooftop Bar', 'Gym', 'Parking', 'Business Center'],
     latitude: 37.7749,
@@ -75,24 +75,11 @@ const SAMPLE_HOTELS = [
     rating: 4.8,
     reviews: 445,
     price: 380,
-    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+    image: require('../../../materials/10-Hotel Detail Page/image-1.png'),
     description: 'Five-star resort with premium spa facilities and gourmet dining',
     amenities: ['WiFi', 'Spa', 'Pool', 'Restaurant', 'Valet', 'Concierge'],
     latitude: 34.0522,
     longitude: -118.2437,
-  },
-  {
-    id: '6',
-    name: 'Historic Downtown Inn',
-    location: 'Boston, USA',
-    rating: 4.5,
-    reviews: 178,
-    price: 160,
-    image: 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
-    description: 'Charming historic hotel with authentic colonial architecture',
-    amenities: ['WiFi', 'Restaurant', 'Parking', 'Business Center'],
-    latitude: 42.3601,
-    longitude: -71.0589,
   },
 ];
 
@@ -115,13 +102,10 @@ const ExploreScreen = ({ navigation }) => {
   const loadHotels = async () => {
     try {
       setLoading(true);
-      // In production, fetch from Firebase
-      // const result = await getHotels();
-      // Simulate API call
       setTimeout(() => {
         setHotels(SAMPLE_HOTELS);
         setLoading(false);
-      }, 1000);
+      }, 500);
     } catch (error) {
       console.error('Error loading hotels:', error);
       Alert.alert('Error', 'Failed to load hotels. Please try again.');
@@ -138,7 +122,6 @@ const ExploreScreen = ({ navigation }) => {
   const filterAndSortHotels = () => {
     let filtered = [...hotels];
 
-    // Filter by search query
     if (searchQuery.trim()) {
       filtered = filtered.filter(hotel =>
         hotel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -146,7 +129,6 @@ const ExploreScreen = ({ navigation }) => {
       );
     }
 
-    // Sort
     if (sortBy === 'rating') {
       filtered.sort((a, b) => b.rating - a.rating);
     } else if (sortBy === 'price') {
@@ -163,8 +145,6 @@ const ExploreScreen = ({ navigation }) => {
   const renderHeader = () => (
     <View style={styles.header}>
       <Text style={styles.title}>Explore Hotels</Text>
-      
-      {/* Search Bar */}
       <View style={styles.searchContainer}>
         <Ionicons name="search-outline" size={20} color={COLORS.gray} />
         <TextInput
@@ -181,7 +161,6 @@ const ExploreScreen = ({ navigation }) => {
         )}
       </View>
 
-      {/* Sort Options */}
       <View style={styles.sortContainer}>
         <Text style={styles.sortLabel}>Sort by:</Text>
         <TouchableOpacity
@@ -201,8 +180,7 @@ const ExploreScreen = ({ navigation }) => {
           </Text>
         </TouchableOpacity>
       </View>
-      
-      {/* Results count */}
+
       <Text style={styles.resultsText}>
         {filteredHotels.length} hotel{filteredHotels.length !== 1 ? 's' : ''} found
       </Text>
@@ -246,7 +224,7 @@ const ExploreScreen = ({ navigation }) => {
         ListEmptyComponent={renderEmptyComponent}
         refreshing={refreshing}
         onRefresh={onRefresh}
-        removeClippedSubviews={true}
+        removeClippedSubviews
         initialNumToRender={5}
         maxToRenderPerBatch={5}
         windowSize={10}
@@ -256,113 +234,26 @@ const ExploreScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-  },
-  loadingText: {
-    marginTop: SIZES.padding,
-    fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
-  },
-  listContent: {
-    padding: SIZES.padding,
-  },
-  emptyListContent: {
-    flexGrow: 1,
-    padding: SIZES.padding,
-  },
-  header: {
-    marginBottom: SIZES.padding,
-  },
-  title: {
-    fontSize: SIZES.h1,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: SIZES.padding,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderRadius: SIZES.radius,
-    paddingHorizontal: SIZES.padding,
-    height: 50,
-    marginBottom: SIZES.padding,
-    ...SHADOWS.light,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: SIZES.base,
-    fontSize: SIZES.body1,
-    color: COLORS.text,
-  },
-  sortContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SIZES.base,
-  },
-  sortLabel: {
-    fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
-    marginRight: SIZES.base,
-  },
-  sortButton: {
-    paddingHorizontal: SIZES.padding,
-    paddingVertical: SIZES.base,
-    borderRadius: SIZES.radius,
-    backgroundColor: COLORS.white,
-    marginRight: SIZES.base,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-  },
-  sortButtonActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  sortButtonText: {
-    fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
-  },
-  sortButtonTextActive: {
-    color: COLORS.white,
-    fontWeight: '600',
-  },
-  resultsText: {
-    fontSize: SIZES.body3,
-    color: COLORS.textSecondary,
-    marginTop: SIZES.base,
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: SIZES.padding * 3,
-  },
-  emptyText: {
-    fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
-    marginTop: SIZES.padding,
-    textAlign: 'center',
-  },
-  clearButton: {
-    marginTop: SIZES.padding,
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SIZES.padding * 2,
-    paddingVertical: SIZES.base,
-    borderRadius: SIZES.radius,
-  },
-  clearButtonText: {
-    color: COLORS.white,
-    fontSize: SIZES.body2,
-    fontWeight: '600',
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
+  loadingText: { marginTop: SIZES.padding, fontSize: SIZES.body2, color: COLORS.textSecondary },
+  listContent: { padding: SIZES.padding },
+  emptyListContent: { flexGrow: 1, padding: SIZES.padding },
+  header: { marginBottom: SIZES.padding },
+  title: { fontSize: SIZES.h1, fontWeight: 'bold', color: COLORS.text, marginBottom: SIZES.padding },
+  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: SIZES.radius, paddingHorizontal: SIZES.padding, height: 50, marginBottom: SIZES.padding, ...SHADOWS.light },
+  searchInput: { flex: 1, marginLeft: SIZES.base, fontSize: SIZES.body1, color: COLORS.text },
+  sortContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.base },
+  sortLabel: { fontSize: SIZES.body2, color: COLORS.textSecondary, marginRight: SIZES.base },
+  sortButton: { paddingHorizontal: SIZES.padding, paddingVertical: SIZES.base, borderRadius: SIZES.radius, backgroundColor: COLORS.white, marginRight: SIZES.base, borderWidth: 1, borderColor: COLORS.lightGray },
+  sortButtonActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  sortButtonText: { fontSize: SIZES.body2, color: COLORS.textSecondary },
+  sortButtonTextActive: { color: COLORS.white, fontWeight: '600' },
+  resultsText: { fontSize: SIZES.body3, color: COLORS.textSecondary, marginTop: SIZES.base },
+  emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: SIZES.padding * 3 },
+  emptyText: { fontSize: SIZES.body1, color: COLORS.textSecondary, marginTop: SIZES.padding, textAlign: 'center' },
+  clearButton: { marginTop: SIZES.padding, backgroundColor: COLORS.primary, paddingHorizontal: SIZES.padding * 2, paddingVertical: SIZES.base, borderRadius: SIZES.radius },
+  clearButtonText: { color: COLORS.white, fontSize: SIZES.body2, fontWeight: '600' },
 });
 
 export default ExploreScreen;
