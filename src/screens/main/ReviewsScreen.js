@@ -1,24 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  Modal,
-  TextInput,
-  Alert,
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import CustomButton from '../../components/CustomButton';
-import { COLORS, SIZES, FONTS } from '../../constants/theme';
+import { COLORS, SIZES, SHADOWS } from '../../constants/theme';
 import { useAuth } from '../../context/AuthContext';
-import {
-  getHotelReviews,
-  createReview,
-  checkUserReview,
-} from '../../services/firestoreService';
+import { getHotelReviews, createReview } from '../../services/firestoreService';
+
+const avatar1 = require('../../../materials/09-Account Page/avatar.png');
+const thumb1 = require('../../../materials/06-Explore Page/image-1.png');
+const thumb2 = require('../../../materials/06-Explore Page/image-4.png');
+
+const seed = (hotelId) => ([
+  { id: 'd1', userName: 'Rakabuming Suhu', rating: 5, comment: 'Amazing stay. Great service and location!', createdAt: new Date(), avatar: avatar1, images: [thumb1] },
+  { id: 'd2', userName: 'Cameron Williamson', rating: 4, comment: 'Clean rooms and nice breakfast.', createdAt: new Date(), avatar: avatar1, images: [thumb2] },
+]);
 
 const ReviewsScreen = ({ route, navigation }) => {
   const { hotel } = route.params;
@@ -26,201 +21,119 @@ const ReviewsScreen = ({ route, navigation }) => {
 
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [hasReviewed, setHasReviewed] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    loadReviews();
-    checkIfUserReviewed();
-  }, []);
+  useEffect(() => { load(); }, []);
 
-  const loadReviews = async () => {
-    const result = await getHotelReviews(hotel.id);
-    if (result.success) {
-      setReviews(result.reviews);
-    }
+  const load = async () => {
+    const res = await getHotelReviews(hotel.id);
+    let list = [];
+    if (res.success) list = res.reviews.map(r => ({ ...r, avatar: avatar1 }));
+    // seed dummies if none
+    if (!list || list.length === 0) list = seed(hotel.id);
+    setReviews(list);
     setLoading(false);
   };
 
-  const checkIfUserReviewed = async () => {
-    if (user) {
-      const result = await checkUserReview(user.uid, hotel.id);
-      if (result.success) {
-        setHasReviewed(result.hasReviewed);
-      }
-    }
-  };
-
-  const handleSubmitReview = async () => {
-    if (!comment.trim()) {
-      Alert.alert('Error', 'Please write a comment');
-      return;
-    }
-
+  const add = async () => {
+    if (!user) return Alert.alert('Login required', 'Please sign in to add a review.');
+    if (!comment.trim()) return Alert.alert('Error', 'Please write a comment');
     setSubmitting(true);
-
-    const reviewData = {
-      hotelId: hotel.id,
-      userName: user.displayName || 'Anonymous',
-      rating: rating,
-      comment: comment.trim(),
-    };
-
-    const result = await createReview(user.uid, reviewData);
+    const payload = { hotelId: hotel.id, userName: user.displayName || 'Anonymous', rating, comment: comment.trim() };
+    const res = await createReview(user.uid, payload);
     setSubmitting(false);
-
-    if (result.success) {
-      Alert.alert('Success', 'Review submitted successfully!');
-      setModalVisible(false);
-      setComment('');
-      setRating(5);
-      setHasReviewed(true);
-      loadReviews();
-    } else {
-      Alert.alert('Error', result.error);
-    }
+    if (!res.success) return Alert.alert('Error', res.error || 'Failed to submit');
+    setModalVisible(false);
+    setComment(''); setRating(5);
+    load();
   };
 
-  const renderStars = (rating, size = 16) => {
+  const Header = () => {
+    const avg = reviews.length ? (reviews.reduce((a, r) => a + (r.rating || 0), 0) / reviews.length).toFixed(1) : '0.0';
     return (
-      <View style={styles.starsContainer}>
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Ionicons
-            key={star}
-            name={star <= rating ? 'star' : 'star-outline'}
-            size={size}
-            color={COLORS.warning}
-          />
-        ))}
+      <View style={styles.headerTop}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="close" size={24} color={COLORS.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Reviews</Text>
+        <View style={{ width: 24 }} />
+        <View style={styles.aggregate}> 
+          <Text style={styles.aggregateNum}>{avg}</Text>
+          <View style={{ flexDirection: 'row', marginLeft: 4 }}>
+            {[1,2,3,4,5].map(i => (
+              <Ionicons key={i} name={i <= Math.round(avg) ? 'star' : 'star-outline'} size={14} color={COLORS.rating} />
+            ))}
+          </View>
+        </View>
       </View>
     );
   };
 
-  const renderReviewItem = ({ item }) => (
-    <View style={styles.reviewCard}>
-      <View style={styles.reviewHeader}>
-        <View style={styles.userInfo}>
-          <View style={styles.avatar}>
-            <Ionicons name="person" size={24} color={COLORS.white} />
-          </View>
-          <View style={styles.userDetails}>
-            <Text style={styles.userName}>{item.userName}</Text>
-            {renderStars(item.rating, 14)}
-          </View>
+  const Item = ({ item }) => (
+    <View style={styles.card}>
+      <View style={styles.row}>
+        <Image source={item.avatar || avatar1} style={styles.avatar} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.user}>{item.userName}</Text>
+          <View style={{ flexDirection: 'row' }}>{[1,2,3,4,5].map(i => (<Ionicons key={i} name={i <= (item.rating||0) ? 'star' : 'star-outline'} size={14} color={COLORS.rating} />))}</View>
         </View>
-        <Text style={styles.reviewDate}>
-          {new Date(item.createdAt.toDate()).toLocaleDateString()}
-        </Text>
+        <Text style={styles.date}>{new Date(item.createdAt?.toDate ? item.createdAt.toDate() : item.createdAt).toLocaleDateString()}</Text>
       </View>
-      <Text style={styles.reviewComment}>{item.comment}</Text>
+      {item.images && item.images.length > 0 && (
+        <View style={{ flexDirection: 'row', marginTop: 8 }}>
+          {item.images.map((img, idx) => (<Image key={idx} source={img} style={styles.thumb} />))}
+        </View>
+      )}
+      <Text style={styles.comment}>{item.comment}</Text>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Reviews</Text>
-        <View style={{ width: 24 }} />
-      </View>
-
-      {/* Hotel Info */}
-      <View style={styles.hotelInfo}>
-        <Text style={styles.hotelName}>{hotel.name}</Text>
-        <View style={styles.ratingContainer}>
-          <Ionicons name="star" size={20} color={COLORS.warning} />
-          <Text style={styles.rating}>{hotel.rating}</Text>
-          <Text style={styles.reviewCount}>({reviews.length} reviews)</Text>
-        </View>
-      </View>
-
-      {/* Add Review Button */}
-      {!hasReviewed && user && (
-        <TouchableOpacity
-          style={styles.addReviewButton}
-          onPress={() => setModalVisible(true)}
-        >
-          <Ionicons name="add-circle" size={24} color={COLORS.primary} />
-          <Text style={styles.addReviewText}>Write a Review</Text>
+      <Header />
+      {user && (
+        <TouchableOpacity style={styles.addBtn} onPress={() => setModalVisible(true)}>
+          <Ionicons name="add-circle" size={22} color={COLORS.primary} />
+          <Text style={styles.addText}>Write a Review</Text>
         </TouchableOpacity>
       )}
 
-      {/* Reviews List */}
       <FlatList
         data={reviews}
-        renderItem={renderReviewItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="chatbubbles-outline" size={64} color={COLORS.lightGray} />
-            <Text style={styles.emptyText}>No reviews yet</Text>
-            <Text style={styles.emptySubtext}>Be the first to review!</Text>
-          </View>
-        }
+        keyExtractor={(i, idx) => i.id || String(idx)}
+        renderItem={Item}
+        contentContainerStyle={{ padding: SIZES.padding }}
       />
 
-      {/* Add Review Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
+      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Write a Review</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color={COLORS.textPrimary} />
-              </TouchableOpacity>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Write a Review</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: SIZES.padding }}>
+              {[1,2,3,4,5].map(i => (
+                <TouchableOpacity key={i} onPress={() => setRating(i)} style={{ marginHorizontal: 6 }}>
+                  <Ionicons name={i <= rating ? 'star' : 'star-outline'} size={28} color={COLORS.rating} />
+                </TouchableOpacity>
+              ))}
             </View>
-
-            {/* Star Rating Selector */}
-            <View style={styles.ratingSelector}>
-              <Text style={styles.ratingLabel}>Your Rating</Text>
-              <View style={styles.starsSelector}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <TouchableOpacity key={star} onPress={() => setRating(star)}>
-                    <Ionicons
-                      name={star <= rating ? 'star' : 'star-outline'}
-                      size={32}
-                      color={COLORS.warning}
-                      style={styles.starButton}
-                    />
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* Comment Input */}
-            <View style={styles.commentSection}>
-              <Text style={styles.commentLabel}>Your Review</Text>
-              <TextInput
-                style={styles.commentInput}
-                placeholder="Share your experience..."
-                value={comment}
-                onChangeText={setComment}
-                multiline
-                numberOfLines={6}
-                textAlignVertical="top"
-                placeholderTextColor={COLORS.gray}
-              />
-            </View>
-
-            {/* Submit Button */}
-            <CustomButton
-              title="Submit Review"
-              onPress={handleSubmitReview}
-              loading={submitting}
-              style={styles.submitButton}
+            <TextInput
+              style={styles.input}
+              placeholder="Share your experience..."
+              placeholderTextColor={COLORS.gray}
+              value={comment}
+              onChangeText={setComment}
+              multiline numberOfLines={6}
+              textAlignVertical="top"
             />
+            <TouchableOpacity style={[styles.primaryBtn, submitting && { opacity: 0.6 }]} onPress={add} disabled={submitting}>
+              <Text style={styles.primaryBtnText}>{submitting ? 'Submitting...' : 'Submit Review'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancel} onPress={() => setModalVisible(false)}>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -229,188 +142,28 @@ const ReviewsScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SIZES.padding * 2,
-    paddingVertical: SIZES.padding,
-  },
-  headerTitle: {
-    ...FONTS.h4,
-    color: COLORS.textPrimary,
-    fontWeight: '600',
-  },
-  hotelInfo: {
-    paddingHorizontal: SIZES.padding * 2,
-    paddingBottom: SIZES.padding,
-  },
-  hotelName: {
-    ...FONTS.h5,
-    color: COLORS.textPrimary,
-    marginBottom: 5,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  rating: {
-    ...FONTS.h6,
-    color: COLORS.textPrimary,
-    marginLeft: 5,
-    fontWeight: '600',
-  },
-  reviewCount: {
-    ...FONTS.body,
-    color: COLORS.textSecondary,
-    marginLeft: 5,
-  },
-  addReviewButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.white,
-    marginHorizontal: SIZES.padding * 2,
-    marginBottom: SIZES.padding,
-    padding: SIZES.padding,
-    borderRadius: SIZES.radius,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    borderStyle: 'dashed',
-  },
-  addReviewText: {
-    ...FONTS.body,
-    color: COLORS.primary,
-    marginLeft: SIZES.base,
-    fontWeight: '600',
-  },
-  listContent: {
-    padding: SIZES.padding * 2,
-    paddingTop: 0,
-  },
-  reviewCard: {
-    backgroundColor: COLORS.white,
-    padding: SIZES.padding,
-    borderRadius: SIZES.radius,
-    marginBottom: SIZES.padding,
-  },
-  reviewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: SIZES.padding,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  userDetails: {
-    marginLeft: SIZES.base,
-    flex: 1,
-  },
-  userName: {
-    ...FONTS.body,
-    color: COLORS.textPrimary,
-    fontWeight: '600',
-    marginBottom: 3,
-  },
-  starsContainer: {
-    flexDirection: 'row',
-  },
-  reviewDate: {
-    ...FONTS.caption,
-    color: COLORS.textSecondary,
-  },
-  reviewComment: {
-    ...FONTS.body,
-    color: COLORS.textSecondary,
-    lineHeight: 22,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: SIZES.padding * 4,
-  },
-  emptyText: {
-    ...FONTS.h6,
-    color: COLORS.textSecondary,
-    marginTop: SIZES.padding,
-  },
-  emptySubtext: {
-    ...FONTS.caption,
-    color: COLORS.textSecondary,
-    marginTop: 5,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: COLORS.overlay,
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: SIZES.radius * 2,
-    borderTopRightRadius: SIZES.radius * 2,
-    padding: SIZES.padding * 2,
-    maxHeight: '80%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SIZES.padding * 2,
-  },
-  modalTitle: {
-    ...FONTS.h4,
-    color: COLORS.textPrimary,
-    fontWeight: '600',
-  },
-  ratingSelector: {
-    marginBottom: SIZES.padding * 2,
-  },
-  ratingLabel: {
-    ...FONTS.body,
-    color: COLORS.textPrimary,
-    fontWeight: '600',
-    marginBottom: SIZES.base,
-  },
-  starsSelector: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  starButton: {
-    marginHorizontal: 5,
-  },
-  commentSection: {
-    marginBottom: SIZES.padding * 2,
-  },
-  commentLabel: {
-    ...FONTS.body,
-    color: COLORS.textPrimary,
-    fontWeight: '600',
-    marginBottom: SIZES.base,
-  },
-  commentInput: {
-    backgroundColor: COLORS.background,
-    borderRadius: SIZES.radius,
-    padding: SIZES.padding,
-    ...FONTS.body,
-    color: COLORS.textPrimary,
-    height: 120,
-  },
-  submitButton: {
-    marginBottom: SIZES.padding,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SIZES.padding, paddingTop: 8 },
+  headerTitle: { fontSize: SIZES.h4, color: COLORS.text, fontWeight: '700' },
+  aggregate: { position: 'absolute', right: SIZES.padding, top: SIZES.padding },
+  aggregateNum: { fontSize: SIZES.h5, color: COLORS.text, fontWeight: '700' },
+  addBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: SIZES.padding, marginTop: SIZES.base },
+  addText: { marginLeft: 8, color: COLORS.primary, fontWeight: '600' },
+  card: { backgroundColor: COLORS.white, borderRadius: SIZES.radius, padding: SIZES.padding, marginBottom: SIZES.base, marginHorizontal: SIZES.padding, ...SHADOWS.light },
+  row: { flexDirection: 'row', alignItems: 'center' },
+  avatar: { width: 36, height: 36, borderRadius: 18, marginRight: 10 },
+  user: { fontSize: SIZES.body2, color: COLORS.text, fontWeight: '600' },
+  date: { fontSize: SIZES.caption, color: COLORS.textSecondary },
+  comment: { marginTop: 8, color: COLORS.textSecondary, fontSize: SIZES.body2 },
+  thumb: { width: 64, height: 48, borderRadius: 8, marginRight: 8 },
+  modalOverlay: { flex: 1, backgroundColor: COLORS.overlay, justifyContent: 'flex-end' },
+  modalCard: { backgroundColor: COLORS.white, borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: SIZES.padding * 2 },
+  modalTitle: { fontSize: SIZES.h4, color: COLORS.text, fontWeight: '700', marginBottom: SIZES.base },
+  input: { backgroundColor: COLORS.background, borderRadius: SIZES.radius, padding: SIZES.padding, color: COLORS.text, minHeight: 120 },
+  primaryBtn: { backgroundColor: COLORS.primary, borderRadius: SIZES.radius, alignItems: 'center', paddingVertical: 12, marginTop: SIZES.base },
+  primaryBtnText: { color: COLORS.white, fontWeight: '700' },
+  cancel: { alignItems: 'center', paddingVertical: 10 },
+  cancelText: { color: COLORS.primary, fontWeight: '600' },
 });
 
 export default ReviewsScreen;
